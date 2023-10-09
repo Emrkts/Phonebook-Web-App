@@ -82,7 +82,7 @@ Resources:
               pip3 install boto3
               yum install git -y
               echo "${MyDBURI}" > /home/ec2-user/dbserver.endpoint
-              TOKEN="xxxxxxxxxxxxxxxxxxxxxxxxxxx"
+              TOKEN="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"
               cd /home/ec2-user
               git clone https://$TOKEN@github.com/Emrkts/Phonebook-Web-App.git
               python3 /home/ec2-user/phonebook-web-app/phonebook-app.py
@@ -152,3 +152,8 @@ Resources:
       VpcId: !Ref MyVPC
 
 Outputs:
+  WebsiteURL:
+    Value: !Sub
+      - http://${ALBAddress}
+      - ALBAddress: !GetAtt ALB.DNSName
+    Description: Phonebook Application Load Balancer URL
