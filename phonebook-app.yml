@@ -1,24 +1,24 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: |
-  CloudFormation Template for Phonebook Application. This template creates Application Load Balancer
+  CloudFormation Template for Phonebook Application. This template creates Application Load Balancer 
   with Auto Scaling Group of Amazon Linux 2023 (ami-067d1e60475437da2 ) EC2 Instances which host Python Flask Web Application.
   EC2 instances are placed within WebServerSecurityGroup which allows http (80) connections only from ALBSecurityGroup,
-  and allows tcp(3306) connections only within itself. RDS DB instance is placed within WebServerSecurityGroup
-  so that Database Server can communicate with Web Servers. Application Load Balancer is placed within ALBSecurityGroup
-  which allows http (80) connections from anywhere. WebServerASG Auto Scaling Group is using the LT
-  Launch Template in order to spin up instances needed. LT Launch Template is configured to prepare Python Flask
-  environment on EC2, and to deploy Phonebook Application on Flask Server after downloading the app code
+  and allows tcp(3306) connections only within itself. RDS DB instance is placed within WebServerSecurityGroup 
+  so that Database Server can communicate with Web Servers. Application Load Balancer is placed within ALBSecurityGroup 
+  which allows http (80) connections from anywhere. WebServerASG Auto Scaling Group is using the LT 
+  Launch Template in order to spin up instances needed. LT Launch Template is configured to prepare Python Flask 
+  environment on EC2, and to deploy Phonebook Application on Flask Server after downloading the app code 
   from Github repository.
 Parameters:
+  MyVPC:
+    Description: VPC Id of your existing account
+    Type: AWS::EC2::VPC::Id
   KeyName:
-    Description: choose your keypair
+    Description: Please enter your Key pair
     Type: AWS::EC2::KeyPair::KeyName
   Subnets:
     Description: Please select your subnets used by ALB
     Type: List<AWS::EC2::Subnet::Id>
-  MyVPC:
-    Description: VPC Id of your existing account
-    Type: AWS::EC2::VPC::Id
 
 Resources:
   ASG:
@@ -84,7 +84,7 @@ Resources:
               echo "${MyDBURI}" > /home/ec2-user/dbserver.endpoint
               TOKEN="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"
               cd /home/ec2-user
-              git clone https://$TOKEN@github.com/Emrkts/Phonebook-Web-App.git
+              git clone https://$TOKEN@github.com/awsdevopsteam/phonebook-web-app.git
               python3 /home/ec2-user/phonebook-web-app/phonebook-app.py
             - MyDBURI: !GetAtt DBInstance.Endpoint.Address
 
@@ -104,16 +104,16 @@ Resources:
       AllocatedStorage: 20
       AllowMajorVersionUpgrade: false
       AutoMinorVersionUpgrade: false
-      BackupRetentionPeriod: 0
+      BackupRetentionPeriod: 0 # Don't forget to delete manuel snapshot after you delete CFN stack.
       DBInstanceClass: db.t2.micro
       DBInstanceIdentifier: phonebook-app
       DBName: clarusway_phonebook
-      DBSecurityGroups:
+      DBSecurityGroups: # or you can use VPC security groups. not both.
         - !Ref DBSecurityGroup
       Engine: MySQL
       EngineVersion: 8.0.32
-      MasterUserPassword: clarusway_1234
       MasterUsername: admin
+      MasterUserPassword: clarusway_1234
       Port: 3306
       PubliclyAccessible: true
 
@@ -122,7 +122,7 @@ Resources:
     Properties:
       DBSecurityGroupIngress: # Required
         - EC2SecurityGroupId: !GetAtt WebServerSecurityGroup.GroupId
-      GroupDescription: only allows from ec2 sec grp # Required
+      GroupDescription: Back-end Database # Required
 
   ALBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -138,8 +138,7 @@ Resources:
   WebServerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: enable HTTP and SSH for flask webserver # Required
-      GroupName: emrephonebook15
+      GroupDescription: Enable HTTP for Flask Web Server and SSH for getting into EC2 # Required
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 80
